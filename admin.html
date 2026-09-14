@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreambook - Creator Admin Control Panel</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #0b2136;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
+        .admin-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: #122238;
+            border: 2px solid #ffcc00;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+        }
+        .admin-header {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffcc00;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #223f63;
+            padding-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            font-size: 12px;
+            color: #8a9bb0;
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+        input, select {
+            width: 100%;
+            padding: 10px;
+            background: #0b1826;
+            border: 1px solid #223f63;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 13px;
+        }
+        .btn-action {
+            background-color: #ffcc00;
+            color: #000;
+            font-weight: bold;
+            border: none;
+            padding: 12px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .section-title {
+            font-size: 15px;
+            color: #fff;
+            margin-top: 25px;
+            margin-bottom: 10px;
+            font-weight: bold;
+            border-left: 3px solid #ffcc00;
+            padding-left: 8px;
+        }
+        .success-msg {
+            background: #28a745;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+            font-size: 13px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="admin-container">
+        <div class="admin-header">
+            <span>⚙️ CREATOR CONTROL PANEL</span>
+            <span style="font-size:12px; background:#ffcc00; color:#000; padding:2px 6px; border-radius:4px;">Admin Mode</span>
+        </div>
+
+        <!-- 1. MATCH CONTROL -->
+        <div class="section-title">Live Match & Game Control</div>
+        <div class="form-group">
+            <label>Select Sport Type:</label>
+            <select id="adm-sport">
+                <option value="CRICKET">CRICKET</option>
+                <option value="FOOTBALL">FOOTBALL</option>
+                <option value="TENNIS">TENNIS</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>League Name:</label>
+            <input type="text" id="adm-league" placeholder="e.g. Indian Premier League">
+        </div>
+        <div class="form-group">
+            <label>Match Teams:</label>
+            <input type="text" id="adm-match" placeholder="e.g. India v Australia">
+        </div>
+        <div class="form-group">
+            <label>Match Date & Time:</label>
+            <input type="text" id="adm-time" placeholder="18 Sept 2026 19:30 (IST)">
+        </div>
+        <button class="btn-action" onclick="publishMatchToUserPanel()">🚀 Publish Match to User Panel</button>
+
+
+        <!-- 2. USER WALLET CONTROL -->
+        <div class="section-title" style="margin-top: 35px;">User Wallet Points Management</div>
+        <div class="form-group">
+            <label>User Email / Mobile ID:</label>
+            <input type="text" id="adm-user-id" placeholder="e.g. userr@gmail.com">
+        </div>
+        <div class="form-group">
+            <label>Add Points / Balance (₹):</label>
+            <input type="number" id="adm-points" placeholder="e.g. 5000">
+        </div>
+        <button class="btn-action" style="background-color: #28a745; color: white;" onclick="updateUserWallet()">💰 Add Balance to User Wallet</button>
+
+        <div id="alertBox" class="success-msg">Action completed successfully! Data sent to user panel.</div>
+    </div>
+
+    <script>
+        function publishMatchToUserPanel() {
+            let sport = document.getElementById('adm-sport').value;
+            let league = document.getElementById('adm-league').value;
+            let match = document.getElementById('adm-match').value;
+            let time = document.getElementById('adm-time').value;
+
+            if(!league || !match || !time) {
+                alert('कृपया सभी जानकारी भरें!');
+                return;
+            }
+
+            // डेटा को ब्राउज़र की लोकल स्टोरेज में सेव कर रहे हैं ताकि यूज़र पैनल इसे देख सके
+            let existingMatches = JSON.parse(localStorage.getItem('admin_matches') || '[]');
+            let newMatchObj = { sport, league, match, time, odd1: '1.85', odd2: '1.90', odd3: '2.05', odd4: '2.15' };
+            existingMatches.push(newMatchObj);
+            localStorage.setItem('admin_matches', JSON.stringify(existingMatches));
+
+            showAlert("नया मैच सफलतापूर्वक यूज़र पैनल पर लाइव कर दिया गया है!");
+            document.getElementById('adm-league').value = '';
+            document.getElementById('adm-match').value = '';
+            document.getElementById('adm-time').value = '';
+        }
+
+        function updateUserWallet() {
+            let userId = document.getElementById('adm-user-id').value;
+            let points = document.getElementById('adm-points').value;
+
+            if(!userId || !points) {
+                alert('यूज़र आईडी और राशि दर्ज करें!');
+                return;
+            }
+
+            localStorage.setItem('user_wallet_' + userId, points);
+            showAlert("यूज़र " + userId + " के वॉलेट में ₹" + points + " सफलतापूर्वक जोड़ दिए गए हैं!");
+            document.getElementById('adm-user-id').value = '';
+            document.getElementById('adm-points').value = '';
+        }
+
+        function showAlert(msg) {
+            let box = document.getElementById('alertBox');
+            box.innerText = msg;
+            box.style.display = 'block';
+            setTimeout(() => { box.style.display = 'none'; }, 4000);
+        }
+    </script>
+</body>
+</html>
