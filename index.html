@@ -1,1 +1,637 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dreambook - Login & User Panel with Admin Controls</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0b2136;
+            font-family: Arial, sans-serif;
+            color: white;
+        }
 
+        /* --- SCREEN VISIBILITY --- */
+        .app-screen {
+            display: none !important;
+        }
+        .app-screen.active {
+            display: block !important;
+        }
+
+        /* --- LOGIN SCREEN --- */
+        #login-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #0b2136;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            box-sizing: border-box;
+            padding: 15px;
+        }
+        .login-card {
+            background-color: #ffffff;
+            width: 100%;
+            max-width: 380px;
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.4);
+            color: #333;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        .login-logo {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1a4480;
+            margin-bottom: 5px;
+        }
+        .login-subtitle {
+            font-size: 12px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+        .login-input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+            background-color: #f4f6f9;
+        }
+        .btn-login, .btn-demo-login {
+            width: 100%;
+            background-color: #1a4480;
+            color: white;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 6px;
+            font-size: 15px;
+            cursor: pointer;
+            margin-bottom: 10px;
+        }
+
+        /* --- USER PANEL LAYOUT --- */
+        #user-panel-screen {
+            min-height: 100vh;
+            background-color: #0b2136;
+        }
+        .panel-body {
+            padding-bottom: 70px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            background-color: #061424;
+        }
+        .logo {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        
+        /* Action Buttons (Deposit / Withdraw) */
+        .action-buttons {
+            display: flex;
+            gap: 10px;
+            padding: 12px 15px;
+        }
+        .btn-deposit {
+            flex: 1;
+            background-color: #28a745;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+        .btn-withdraw {
+            flex: 1;
+            background-color: #e53935;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            font-weight: bold;
+            border-radius: 5px;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        /* Live Match Scrolling Banner */
+        .live-matches-slider {
+            display: flex;
+            gap: 10px;
+            overflow-x: auto;
+            padding: 0 15px 12px 15px;
+            scrollbar-width: none;
+        }
+        .live-matches-slider::-webkit-scrollbar { display: none; }
+        
+        .live-match-card {
+            min-width: 230px;
+            background-color: #162a42;
+            border: 1px solid #223f63;
+            border-radius: 6px;
+            padding: 10px;
+            flex-shrink: 0;
+        }
+        .live-badge {
+            background-color: #e53935;
+            color: white;
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+        .match-teams {
+            font-size: 13px;
+            font-weight: bold;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .match-time {
+            font-size: 11px;
+            color: #8a9bb0;
+            margin-top: 4px;
+        }
+
+        /* Navigation Sub-Tabs (Inplay, Sports, Casino) */
+        .sub-nav-tabs {
+            display: flex;
+            background-color: #122842;
+            padding: 0 15px;
+            border-bottom: 1px solid #1a3a5f;
+        }
+        .sub-tab {
+            padding: 10px 15px;
+            font-size: 13px;
+            font-weight: bold;
+            color: #8a9bb0;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .sub-tab.active {
+            color: #ffcc00;
+            border-bottom-color: #ffcc00;
+        }
+
+        /* Sports Icons Row */
+        .sports-icons-row {
+            display: flex;
+            justify-content: space-around;
+            background-color: #162a42;
+            padding: 12px 5px;
+            margin-bottom: 12px;
+        }
+        .sport-icon-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            opacity: 0.7;
+        }
+        .sport-icon-item.active {
+            opacity: 1;
+            color: #ffcc00;
+        }
+        .sport-icon-item span:first-child {
+            font-size: 20px;
+            margin-bottom: 4px;
+        }
+
+        /* Match Listing Box */
+        .match-list-container {
+            padding: 0 15px 15px 15px;
+        }
+        .match-group-title {
+            font-size: 13px;
+            color: #fff;
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+        .match-box {
+            background-color: #162a42;
+            border-radius: 6px;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #223f63;
+        }
+        .match-title-row {
+            font-size: 14px;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 4px;
+        }
+        .match-date-row {
+            font-size: 12px;
+            color: #ff5252;
+            margin-bottom: 10px;
+        }
+        .odds-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 1fr;
+            gap: 5px;
+            text-align: center;
+        }
+        .odd-btn {
+            background-color: #79c0ff;
+            color: #000;
+            padding: 8px 4px;
+            border-radius: 4px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+        .odd-btn.pink {
+            background-color: #ffb6c1;
+        }
+
+        /* INPLAY Specific Styles */
+        .inplay-banner {
+            background: #162a42;
+            margin: 15px;
+            padding: 12px;
+            border-radius: 6px;
+            border: 1px solid #223f63;
+        }
+        .inplay-title-row {
+            display: flex;
+            align-items: center;
+            font-weight: bold;
+            font-size: 15px;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+        .inplay-red-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #e53935;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .inplay-stats {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .inplay-badge-count {
+            background: #102033;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ccc;
+        }
+        .inplay-search-box {
+            margin: 0 15px 15px 15px;
+        }
+        .inplay-search-input {
+            width: 100%;
+            padding: 10px 12px;
+            background: #162a42;
+            border: 1px solid #223f63;
+            border-radius: 6px;
+            color: white;
+            font-size: 13px;
+            box-sizing: border-box;
+        }
+
+        /* Casino Section */
+        .home-casino-section, .casino-container { padding: 0 15px 15px 15px; }
+        .casino-title-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            background-color: #162a42;
+            padding: 10px 15px;
+            border-radius: 5px;
+        }
+        .casino-title {
+            font-size: 15px;
+            font-weight: bold;
+            color: #ffcc00;
+        }
+        .casino-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        .casino-card {
+            background-color: #162a42;
+            border-radius: 8px;
+            overflow: hidden;
+            text-align: center;
+            padding-bottom: 10px;
+            border: 1px solid #223f63;
+        }
+        .casino-card div {
+            background: #2a4a75;
+            height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #fff;
+            font-size: 13px;
+        }
+        .casino-card span {
+            font-size: 12px;
+            font-weight: bold;
+            color: #fff;
+            margin-top: 6px;
+            display: block;
+        }
+
+        .page-section { display: none; }
+        .page-section.active-page { display: block; }
+
+        /* Bottom Navigation Bar Styles */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: #0b1c2d;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid #1a3a5f;
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+        }
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: #7a8fa6;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .nav-item svg {
+            width: 24px;
+            height: 24px;
+            margin-bottom: 4px;
+            fill: #7a8fa6;
+        }
+        .nav-item.active {
+            color: #ffcc00;
+        }
+        .nav-item.active svg {
+            fill: #ffcc00;
+        }
+
+        /* Admin Quick Toggle Panel Style */
+        .admin-panel-box {
+            background: #0f1c2e;
+            border: 1px dashed #ffcc00;
+            padding: 10px 15px;
+            margin: 10px 15px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 1. LOGIN SCREEN -->
+    <div id="login-screen" class="app-screen active">
+        <div class="login-card">
+            <div class="login-logo">DREAMBOOK</div>
+            <div class="login-subtitle">SPORTS · CASINO · EXCHANGE</div>
+            
+            <input type="email" id="login-email" class="login-input" value="creatorr@gmail.com">
+            <input type="password" id="login-pass" class="login-input" value="••••••••••••">
+            
+            <button class="btn-login" id="loginBtn">LOGIN</button>
+            <button class="btn-demo-login" id="demoLoginBtn">LOGIN WITH DEMO ID</button>
+        </div>
+    </div>
+
+    <!-- 2. USER PANEL SCREEN -->
+    <div id="user-panel-screen" class="app-screen">
+        <div class="panel-body">
+            
+            <!-- Header -->
+            <div class="header">
+                <div class="logo">Dreambook</div>
+                <div style="font-size: 12px; background: #ffcc00; color: #000; padding: 3px 8px; border-radius: 4px; font-weight: bold;">creatorr</div>
+            </div>
+
+            <!-- Home Section -->
+            <div id="home-section" class="page-section active-page">
+                <!-- Action Buttons -->
+                <div class="action-buttons">
+                    <button class="btn-deposit">DEPOSIT</button>
+                    <button class="btn-withdraw">WITHDRAW</button>
+                </div>
+
+                <!-- Admin Controller Simulator (जहाँ से आप डेटा कंट्रोल करेंगे) -->
+                <div class="admin-panel-box">
+                    <span style="color:#ffcc00; font-weight:bold;">⚙️ Admin Panel Simulation:</span> 
+                    Add/Simulate matches dynamically in code database. Current Active Filter: <span id="current-filter-label" style="color:#00ffcc; font-weight:bold;">CRICKET</span>
+                </div>
+
+                <!-- Sub-Tabs: INPLAY, SPORTS, CASINO -->
+                <div class="sub-nav-tabs">
+                    <div class="sub-tab" onclick="switchSubTab('inplay-content', this)">INPLAY</div>
+                    <div class="sub-tab active" onclick="switchSubTab('sports-content', this)">SPORTS</div>
+                    <div class="sub-tab" onclick="switchTab('casino-section', event)">CASINO</div>
+                </div>
+
+                <!-- Dynamic Content Area inside Home -->
+                <div id="sub-tab-content-area">
+                    
+                    <!-- SPORTS CONTENT -->
+                    <div id="sports-content" class="sub-content-pane">
+                        <!-- Sports Icons Row (Clicking these automatically loads category matches) -->
+                        <div class="sports-icons-row">
+                            <div class="sport-icon-item active" onclick="filterSport('CRICKET', this)"><span>🏏</span><span>Cricket</span></div>
+                            <div class="sport-icon-item" onclick="filterSport('FOOTBALL', this)"><span>⚽</span><span>Football</span></div>
+                            <div class="sport-icon-item" onclick="filterSport('TENNIS', this)"><span>🎾</span><span>Tennis</span></div>
+                            <div class="sport-icon-item" onclick="filterSport('ALL', this)"><span>⭐</span><span>All</span></div>
+                        </div>
+
+                        <!-- Match List (Dynamically Rendered based on selection) -->
+                        <div class="match-list-container" id="dynamic-match-list">
+                            <!-- Matches will load here automatically -->
+                        </div>
+                    </div>
+
+                    <!-- INPLAY CONTENT -->
+                    <div id="inplay-content" class="sub-content-pane" style="display: none;">
+                        <div class="inplay-banner">
+                            <div class="inplay-title-row">
+                                <span class="inplay-red-dot"></span> LIVE & UPCOMING MARKETS
+                            </div>
+                            <div class="inplay-stats">
+                                <div class="inplay-badge-count">Total Live: 49</div>
+                            </div>
+                        </div>
+                        <div class="match-list-container" id="inplay-dynamic-list">
+                            <!-- Inplay items -->
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- My Bets Section -->
+            <div id="my-bets-section" class="page-section">
+                <div style="padding: 15px;">
+                    <div style="font-size: 22px; font-weight: bold; margin-bottom: 5px;">MY BETS</div>
+                    <div style="text-align: center; padding: 40px 10px;">
+                        <h3>No bets yet</h3>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wallet Section -->
+            <div id="wallet-section" class="page-section">
+                <div style="padding: 15px;">
+                    <div style="font-size: 22px; font-weight: bold; margin-bottom: 5px;">WALLET</div>
+                    <div style="font-size: 16px; font-weight: bold; margin: 15px 0;">Balance: ₹0</div>
+                    <button style="width: 100%; background-color: #28a745; color: white; border: none; padding: 12px; font-weight: bold; border-radius: 5px;">+ ADD MONEY</button>
+                </div>
+            </div>
+
+            <!-- Casino Section -->
+            <div id="casino-section" class="page-section">
+                <div class="casino-container">
+                    <div class="casino-title-bar"><span class="casino-title">CASINO GAMES</span></div>
+                    <div class="casino-grid">
+                        <div class="casino-card"><div>AVIATOR</div><span>Aviator</span></div>
+                        <div class="casino-card"><div>TEEN PATTI</div><span>Teen Patti</span></div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Navigation -->
+        <div class="bottom-nav">
+            <a class="nav-item active" onclick="switchTab('home-section', event)">
+                <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+                <span>HOME</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('my-bets-section', event)">
+                <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+                <span>MY BETS</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('wallet-section', event)">
+                <svg viewBox="0 0 24 24"><path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2 .9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>
+                <span>WALLET</span>
+            </a>
+            <a class="nav-item" onclick="switchTab('casino-section', event)">
+                <svg viewBox="0 0 24 24"><path d="M20 6H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-9 3h2v2h-2V9zm0 3h2v2H8v-2zm9 6H7v-2h10v2zm0-4h-2v-2h2v2zm0-3h-2V9h2v2z"/></svg>
+                <span>CASINO</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- JavaScript Script with Dynamic Admin Data Mapping -->
+    <script>
+        // --- ADMIN DATA DATABASE (यहाँ से एडमिन पैनल या डेटा बदलेंगे तो ऑटोमैटिक अपडेट होगा) ---
+        const adminMatchesDatabase = [
+            { id: 1, sport: 'CRICKET', league: 'One Day Internationals', match: 'Zimbabwe v Australia', time: '15 Sept 2026 13:00 (IST)', odd1: '11', odd2: '11.5', odd3: '1.09', odd4: '1.1' },
+            { id: 2, sport: 'CRICKET', league: 'European T20 Premier League', match: 'Amsterdam Flames v Dublin Guardians', time: '15 Sept 2026 15:00 (IST)', odd1: '1.68', odd2: '1.79', odd3: '2.28', odd4: '2.48' },
+            { id: 3, sport: 'FOOTBALL', league: 'English Premier League', match: 'Manchester City v Arsenal', time: '16 Sept 2026 20:00 (IST)', odd1: '2.10', odd2: '2.20', odd3: '3.40', odd4: '3.55' },
+            { id: 4, sport: 'FOOTBALL', league: 'UEFA Champions League', match: 'Real Madrid v Bayern Munich', time: '17 Sept 2026 00:30 (IST)', odd1: '1.95', odd2: '2.05', odd3: '3.80', odd4: '4.00' },
+            { id: 5, sport: 'TENNIS', league: 'ATP US Open Finals', match: 'Carlos Alcaraz v Novak Djokovic', time: '18 Sept 2026 22:00 (IST)', odd1: '1.55', odd2: '1.62', odd3: '2.40', odd4: '2.50' }
+        ];
+
+        function openUserPanel() {
+            document.getElementById('login-screen').classList.remove('active');
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('user-panel-screen').classList.add('active');
+            document.getElementById('user-panel-screen').style.display = 'block';
+            
+            // Load initial cricket matches by default
+            filterSport('CRICKET', document.querySelector('.sport-icon-item'));
+        }
+
+        document.getElementById('loginBtn').addEventListener('click', openUserPanel);
+        document.getElementById('demoLoginBtn').addEventListener('click', openUserPanel);
+
+        // --- FILTER SPORT AUTOMATIC RENDER FUNCTION ---
+        function filterSport(selectedSport, element) {
+            // Highlight active icon
+            document.querySelectorAll('.sport-icon-item').forEach(item => item.classList.remove('active'));
+            if(element) element.classList.add('active');
+
+            document.getElementById('current-filter-label').innerText = selectedSport;
+
+            // Filter database
+            let filteredMatches = [];
+            if(selectedSport === 'ALL') {
+                filteredMatches = adminMatchesDatabase;
+            } else {
+                filteredMatches = adminMatchesDatabase.filter(m => m.sport === selectedSport);
+            }
+
+            // Render HTML automatically
+            let container = document.getElementById('dynamic-match-list');
+            let htmlContent = '';
+
+            if(filteredMatches.length === 0) {
+                htmlContent = `<div style="text-align:center; padding:20px; color:#8a9bb0;">No active matches found for ${selectedSport}.</div>`;
+            } else {
+                // Group by league or list directly
+                filteredMatches.forEach(match => {
+                    htmlContent += `
+                        <div class="match-group-title">${match.league}</div>
+                        <div class="match-box">
+                            <div class="match-title-row">${match.match}</div>
+                            <div class="match-date-row">📅 ${match.time}</div>
+                            <div class="odds-grid">
+                                <div class="odd-btn">${match.odd1}</div>
+                                <div class="odd-btn pink">${match.odd2}</div>
+                                <div class="odd-btn">${match.odd3}</div>
+                                <div class="odd-btn pink">${match.odd4}</div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = htmlContent;
+        }
+
+        function switchTab(sectionId, event) {
+            document.querySelectorAll('.page-section').forEach(sec => sec.classList.remove('active-page'));
+            document.getElementById(sectionId).classList.add('active-page');
+            document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
+            if (event && event.currentTarget) event.currentTarget.classList.add('active');
+        }
+
+        function switchSubTab(contentId, element) {
+            document.querySelectorAll('.sub-content-pane').forEach(pane => pane.style.display = 'none');
+            document.getElementById(contentId).style.display = 'block';
+            document.querySelectorAll('.sub-tab').forEach(tab => tab.classList.remove('active'));
+            if(element) element.classList.add('active');
+        }
+    </script>
+</body>
+</html>
